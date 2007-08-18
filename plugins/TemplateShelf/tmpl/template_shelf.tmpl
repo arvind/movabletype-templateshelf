@@ -1,0 +1,148 @@
+<mt:setvarblock name="html_head" append="1">
+	<style type="text/css">
+		#template-shelf .widget-content-inner {
+			padding-left: 0;
+			padding-right: 0;
+		}
+		#template-shelf select {
+			font-size:12px; 
+			float:left;
+		}
+	
+		#template-shelf p.create-link {
+			font-size: 11px;
+			text-align: right;
+			line-height: normal;
+			margin: 0;
+		}
+
+		#template-shelf #template-listing-container {
+			height: 370px;
+			overflow: auto;
+			border: 1px solid #aaa;
+			margin-bottom: 15px;
+			clear: both;
+		}
+
+		#template-shelf li { 
+			padding: 3px 7px; 
+			display: block;
+		}
+
+		#template-shelf li p { margin: 0;}
+
+		#template-shelf li.selected { background: #FFFFDF;}
+		#template-shelf tr img { visibility: hidden; }
+		#template-shelf tr.hover img { visibility: visible; }
+		
+		.dialog-4 #container, .dialog-4 #content { overflow: visible; }
+		.dialog-4 #title-field #title { width: 100%; }
+		.dialog-4 .actions-bar { position: static;}
+		.dialog-4 .actions-bar-bottom { display: block; }
+		.dialog-4 .plugin-actions {
+			display: none;
+		}
+		
+		.dialog-4 #archive_mapping-field { display: none; }
+	</style>
+	<mt:if name="is_dialog"><script type="text/javascript" src="<$mt:var name="static_uri"$>js/common/Cookie.js?v=<mt:var name="mt_version" escape="url">"></script></mt:if>
+	<script type="text/javascript">
+	<!--
+		<mt:if name="filter_terms">var filters = <mt:var name="filter_terms" to_json="1">;</mt:if>
+		<mt:if name="tmpl_loop">var tmplLoop = <mt:var name="tmpl_loop" to_json="1">;</mt:if>
+		var rowClass = 'odd';
+		
+		function filterTemplates(key) {
+			document.getElementById('template-listing-table').getElementsByTagName('tbody')[0].innerHTML = '';
+			
+			var type = '';
+			if(key)
+				type = filters[key].toString();
+			
+			for (var i = 0; i < tmplLoop.length; i++) {
+				var tmpl = tmplLoop[i];
+				if(!key || type.match(tmpl.type))
+					createRow(tmpl);
+			}
+			
+			if(key && filters[key].constructor.toString().indexOf('Array') == -1) {
+				// Filter is jstu for a single type of template, so we can show the create link
+				document.getElementById('create-link').style.visibility = 'visible';
+				var link = document.getElementById('create-link').getElementsByTagName('a')[0];
+				link.setAttribute('href', '<mt:var name="script_url">?__mode=view&_type=template&blog_id=<mt:var name="blog_id">&type=' + type);
+			} else {
+				document.getElementById('create-link').style.visibility = 'hidden';
+			}
+		}
+		
+		function createRow(tmpl) {
+			// I'm going to be messy here, do I need to create all of this through the DOM?
+			var html = '<tr class="' + rowClass + '" mt:focus-hover="1">';
+			// html += '<td class="cb"><input type="checkbox" name="id" class="select" value="' + tmpl.id + '" /></td>';
+			html += '<td class="template-name"><a href="<mt:var name="script_url">?__mode=view&amp;_type=template&amp;blog_id=<mt:var name="blog_id">&amp;id=' + tmpl.id + '">' + tmpl.name + '</a></td>';				// 
+			html += '<td><a href="#" onclick="return openDialog(this.form, \'view\', \'_type=template&amp;blog_id=<mt:var name="blog_id">&amp;id=' + tmpl.id + '&amp;dialog=1\')"><img src="<mt:var name="static_uri">plugins/TemplateShelf/images/shape_move_backwards.png" style="float:right;" /></a></td>';
+			html += '</tr>';
+			document.getElementById('template-listing-table').getElementsByTagName('tbody')[0].innerHTML += html;
+			
+			if(rowClass == 'odd')
+				rowClass = 'even'
+			else
+				rowClass = 'odd';			
+		}
+		
+		window.onmouseover = function(event) {
+			var target;
+		    if ( event.target &&
+		        ( target = DOM.getFirstAncestorByAttribute( event.target, "mt:focus-hover" ) ) )
+		            DOM.addClassName( target, "hover" );
+		}
+
+		window.onmouseout = function(event) {
+		    var target;
+		    if ( event.target &&
+		        ( target = DOM.getFirstAncestorByAttribute( event.target, "mt:focus-hover" ) ) )
+		            DOM.removeClassName( target, "hover" );	
+		}
+		
+		var tableSelect;
+		function init() {
+			tableSelect = new TC.TableSelect( 'template-listing-table' );
+		    tableSelect.rowSelect = true;
+			filterTemplates('<mt:var name="current_filter">');
+			document.getElementById('filter').value = '<mt:var name="current_filter">';
+		}
+		
+		<mt:unless name="is_dialog">TC.attachLoadEvent(init);</mt:unless>
+	//-->
+	</script>
+</mt:setvarblock>
+
+<mt:setvarblock name="related_content" append="1">
+	<mtapp:widget id="template-shelf" label="Shelf">
+
+		<select name="filter" onchange="filterTemplates(this.value)" id="filter">
+			<option value=""><__trans phrase="All Templates"></option>
+			<mt:loop name="list_filters">
+				<option value="<mt:var name="key">"><mt:var name="label"></option>
+			</mt:loop>
+		</select>
+		
+		<p class="create-link" id="create-link"><a class="icon-left icon-create" href="<mt:var name="script_url">?__mode=view&amp;_type=template&amp;type=<mt:var name="type">&amp;blog_id=<mt:var name="blog_id">"><__trans phrase="Create"></a></p>
+			
+		<br clear="all" />
+		<div id="template-listing-container" class="listing">
+			<table id="template-listing-table">
+				<tbody>
+
+				</tbody>
+			</table>
+		</div>		
+	</mtapp:widget>
+</mt:setvarblock>
+
+<mt:if name="is_dialog">
+<mt:setvarblock name="action_buttons" append="1">
+	<button type="button" title="<__trans phrase="Close">" onclick="return closeDialog();" class="positive"><__trans phrase="Close"></button>
+</mt:setvarblock>
+<mt:setvar name="return_args" value="&dialog=1" append="1">
+</mt:if>
