@@ -6,7 +6,7 @@ use strict;
 
 use MT 4.0;
 use base 'MT::Plugin';
-our $VERSION = '1.0';
+our $VERSION = '1.01';
 
 my $plugin;
 MT->add_plugin($plugin = __PACKAGE__->new({
