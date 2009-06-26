@@ -59,10 +59,9 @@ sub _edit_tmpl_param {
 	
 	my @tmpl_loop;	
 	require MT::Template;
-	my $iter = MT::Template->load_iter({ blog_id => $app->param('blog_id') }, 
+	my $iter = MT::Template->load_iter({ blog_id => [0, $app->param('blog_id')] }, 
 	                                        { sort => 'name', direction => 'ascend' });
-	while (my $tmpl = $iter->()) {
-	    
+	while (my $tmpl = $iter->()) {   
 		push @tmpl_loop, {
 			id => $tmpl->id,
 			blog_id => $tmpl->blog_id,

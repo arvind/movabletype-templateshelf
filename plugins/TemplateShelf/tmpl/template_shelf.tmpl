@@ -32,8 +32,10 @@
 		#template-shelf li p { margin: 0;}
 
 		#template-shelf li.selected { background: #FFFFDF;}
-		#template-shelf tr img { visibility: hidden; }
-		#template-shelf tr.hover img { visibility: visible; }
+		#template-shelf tr img.open-dialog { visibility: hidden; }
+		#template-shelf tr.hover img.open-dialog { visibility: visible; }
+		
+		#template-shelf .global a { color: #7F8833 !important; }
 		
 		.dialog-4 #container, .dialog-4 #content { overflow: visible; }
 		.dialog-4 #title-field #title { width: 100%; }
@@ -70,7 +72,7 @@
 		    filterTemplates('<mt:var name="template_group">');
 		}
 		
-		function filterTemplates(key) {
+		function filterTemplates(key, system) {
 			document.getElementById('template-listing-table').getElementsByTagName('tbody')[0].innerHTML = '';
 			
 			var type = '';
@@ -79,7 +81,8 @@
 			
 			for (var i = 0; i < tmplLoop.length; i++) {
 				var tmpl = tmplLoop[i];
-				if(!key || type.match(tmpl.type))
+				if((!key || type.match(tmpl.type)) && 
+				                    ((system && tmpl.blog_id == 0) || !system))
 					createRow(tmpl);
 			}
 			
@@ -95,14 +98,17 @@
 		
 		function createRow(tmpl) {
 			// I'm going to be messy here, do I need to create all of this through the DOM?
+			if(tmpl.blog_id == 0)
+			    rowClass = 'global ' + rowClass;
+			
 			var html = '<tr class="' + rowClass + '" mt:focus-hover="1">';
 			// html += '<td class="cb"><input type="checkbox" name="id" class="select" value="' + tmpl.id + '" /></td>';
-			html += '<td class="template-name"><a href="<mt:var name="script_url">?__mode=view&amp;_type=template&amp;blog_id=<mt:var name="blog_id">&amp;id=' + tmpl.id + '">' + tmpl.name + '</a></td>';				// 
-			html += '<td><a href="#" onclick="return openDialog(this.form, \'view\', \'_type=template&amp;blog_id=<mt:var name="blog_id">&amp;id=' + tmpl.id + '&amp;dialog=1\')"><img src="<mt:var name="static_uri">plugins/TemplateShelf/images/shape_move_backwards.png" style="float:right;" /></a></td>';
+			html += '<td class="template-name"><a href="<mt:var name="script_url">?__mode=view&amp;_type=template&amp;blog_id=<mt:var name="blog_id">&amp;id=' + tmpl.id + '">' + tmpl.name + '</a></td>';
+			html += '<td><a href="#" onclick="return openDialog(this.form, \'view\', \'_type=template&amp;blog_id=' + tmpl.blog_id + '&amp;id=' + tmpl.id + '&amp;dialog=1\')"><img src="<mt:var name="static_uri">plugins/TemplateShelf/images/shape_move_backwards.png" style="float:right;" class="open-dialog" /></a></td>';
 			html += '</tr>';
 			document.getElementById('template-listing-table').getElementsByTagName('tbody')[0].innerHTML += html;
 			
-			if(rowClass == 'odd')
+			if(rowClass.match('odd'))
 				rowClass = 'even'
 			else
 				rowClass = 'odd';			
