@@ -30,31 +30,39 @@ sub init_registry {
 sub _edit_tmpl_param {
 	my ($cb, $app, $param, $tmpl) = @_;
 
-	my $filters = $app->list_filters('template');
-    return '' if (ref($filters) ne 'ARRAY') || (! @$filters );
-	$param->{list_filters} ||= $filters;
-
-	my $parent_tmpl_type = $param->{type};
-	
-	my $terms = { };
-	foreach my $filter (@$filters) {
-		my $key = $filter->{key};
-		$terms->{$key} ||= {};
-		$filter->{handler}($terms->{$key});
-		my $types = $terms->{$key} = $terms->{$key}->{type};
-		$types = ref($types) eq 'ARRAY' ? "@$types" : $types;
-
-		if($types =~ $parent_tmpl_type) {
-			$param->{current_filter} = $key;
-		}		
-	}
-	
-	$param->{filter_terms} = $terms;
+    # Somewhere along the line, template list_filters were removed from the
+    # registry. Reproducing them here from MT4.0
+    my $sys_tmpl = MT->registry( 'default_templates', 'system' )
+      || {};
+    
+	my $filters = {
+	    index => {
+	        label => 'Index Templates',
+	        type  => 'index'
+	    },
+        archive => {
+            label => 'Archive Templates',
+            type  => [ 'individual', 'page', 'archive', 'category' ]
+        },
+        module => {
+            label => 'Template Modules',
+            type  => 'custom'
+        },
+        system => {
+            label => 'System Templates',
+            type  => [ keys %$sys_tmpl ]
+        }
+    };
+    
+        
+    $param->{filters} = $filters;
 	
 	my @tmpl_loop;	
 	require MT::Template;
-	my $iter = MT::Template->load_iter({ blog_id => $app->param('blog_id') }, { sort => 'name', direction => 'ascend' });
+	my $iter = MT::Template->load_iter({ blog_id => $app->param('blog_id') }, 
+	                                        { sort => 'name', direction => 'ascend' });
 	while (my $tmpl = $iter->()) {
+	    
 		push @tmpl_loop, {
 			id => $tmpl->id,
 			blog_id => $tmpl->blog_id,

@@ -48,16 +48,34 @@
 	<mt:if name="is_dialog"><script type="text/javascript" src="<$mt:var name="static_uri"$>js/common/Cookie.js?v=<mt:var name="mt_version" escape="url">"></script></mt:if>
 	<script type="text/javascript">
 	<!--
-		<mt:if name="filter_terms">var filters = <mt:var name="filter_terms" to_json="1">;</mt:if>
+		<mt:if name="filters">var filters = <mt:var name="filters" to_json="1">;</mt:if>
 		<mt:if name="tmpl_loop">var tmplLoop = <mt:var name="tmpl_loop" to_json="1">;</mt:if>
 		var rowClass = 'odd';
+		
+		function populateFilters() {
+		    var filterDropDown = document.getElementById('templateshelf-filter');
+		    for (var key in filters) {
+		        var f = filters[key];
+		        
+		        var option = document.createElement('option');
+		        option.setAttribute('value', key);
+		        option.innerHTML = f.label;
+		        
+		        if(key.match('<mt:var name="template_group">'))
+		            option.setAttribute('selected', 'true');
+		            
+		        filterDropDown.appendChild(option);
+		    }
+		    
+		    filterTemplates('<mt:var name="template_group">');
+		}
 		
 		function filterTemplates(key) {
 			document.getElementById('template-listing-table').getElementsByTagName('tbody')[0].innerHTML = '';
 			
 			var type = '';
 			if(key)
-				type = filters[key].toString();
+				type = filters[key].type.toString();
 			
 			for (var i = 0; i < tmplLoop.length; i++) {
 				var tmpl = tmplLoop[i];
@@ -65,7 +83,7 @@
 					createRow(tmpl);
 			}
 			
-			if(key && filters[key].constructor.toString().indexOf('Array') == -1) {
+			if(key && filters[key].type.constructor.toString().indexOf('Array') == -1) {
 				// Filter is jstu for a single type of template, so we can show the create link
 				document.getElementById('create-link').style.visibility = 'visible';
 				var link = document.getElementById('create-link').getElementsByTagName('a')[0];
@@ -108,8 +126,7 @@
 		function init() {
 			tableSelect = new TC.TableSelect( 'template-listing-table' );
 		    tableSelect.rowSelect = true;
-			filterTemplates('<mt:var name="current_filter">');
-			document.getElementById('filter').value = '<mt:var name="current_filter">';
+			populateFilters();
 		}
 		
 		<mt:unless name="is_dialog">TC.attachLoadEvent(init);</mt:unless>
@@ -120,7 +137,7 @@
 <mt:setvarblock name="related_content" append="1">
 	<mtapp:widget id="template-shelf" label="Shelf">
 
-		<select name="filter" onchange="filterTemplates(this.value)" id="filter">
+		<select name="templateshelf-filter" onchange="filterTemplates(this.value)" id="templateshelf-filter">
 			<option value=""><__trans phrase="All Templates"></option>
 			<mt:loop name="list_filters">
 				<option value="<mt:var name="key">"><mt:var name="label"></option>
